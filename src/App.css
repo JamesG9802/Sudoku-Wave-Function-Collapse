@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
+
+:root {
+  --page-bg-color-dark: #222222;
+  --page-bg-color-soft-dark: #2b2b2b;
+  --text-color-dark: #dadada;
+  --text-color-soft-dark: #cacaca;
+  --accent1-color-dark: #D9E9B4;
+  --accent2-color-dark: #629094;
+  --accent3-color-dark: #99847e;
+  --text-standard-font-family: 'Open Sans', sans-serif;
+  --text-standard-font-size: 1.25em;
+  --text-large-font-size: 1.75em;
+  --text-larger-font-size: 2.25em;
+}
+
+body {
+  margin: 0px;
+  padding: 0px;
+  min-height: 100vh;
+}
+.App {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  color: var(--text-color-dark);
+  font-family: var(--text-standard-font-family);
+}
+
+.section {
+  padding-bottom: 100px;
+  padding-left: 2vw;
+  padding-right: 2vw;
+}
+.section-start {
+  background-color: var(--page-bg-color-dark);
+}
+.section-content {
+  flex-grow: 1;
+  color: var(--page-bg-color-dark);
+  background-color: var(--text-color-dark);
+  padding-left: 0px;
+  padding-right: 0px;
+}
+.section-end {
+  background-color: var(--page-bg-color-dark);
+}
+.centered {
+  text-align: center;
+}
+.shadowed {
+  text-shadow: 1px 1px 15px rgba(0, 0, 0, 255);
+}
