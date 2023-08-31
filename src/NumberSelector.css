@@ -1,0 +1,19 @@
+.NumberSelector_numberoption {
+    text-align: center;
+    flex-shrink: 0;
+    flex-grow: 1;
+    flex-basis: 33%;
+    background-color: var(--page-bg-color-highlight);
+    border-radius: 10px;
+    font-size: var(--text-larger-font-size);
+    aspect-ratio: 1;
+}
+.NumberSelector_numberoption:hover {
+    background-color: var(--accent1-color);
+}
+.NumberSelector_container {
+    width: 10%;
+    display: inline-flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}

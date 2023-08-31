@@ -7,7 +7,6 @@ export default defineConfig({
   plugins: [react()],
 
   //  https://stackoverflow.com/a/66867648
-  root: 'src',
   build: {
     outDir: '../docs'
   }

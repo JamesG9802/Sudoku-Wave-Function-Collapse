@@ -1,0 +1,41 @@
+/*  A grid of 3 x 3 big cells*/
+#Sudoku_board {
+    display: inline-grid;
+    grid-template-columns: repeat(3, 1fr);
+    width: 675px;
+}
+/*  A grid of 3 x 3 cells   */
+.Sudoku_bigcell {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border: 1px solid var(--text-color);
+}
+/*  A single cell on a sudoku board */
+.Sudoku_cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid var(--text-color);
+    background-color: var(--page-bg-color);
+    font-size: var(--text-larger-font-size);
+    aspect-ratio: 1;
+}
+.Sudoku_cell:hover {
+    color: var(--text-color-highlight);
+    background-color: var(--page-bg-color-highlight);
+}
+/*  A single cell on a sudoku board that displays its valid options */
+.Sudoku_cell_unknown {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border: 1px solid var(--text-color);
+    aspect-ratio: 1;
+}
+.Sudoku_cell_option {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    background-color: var(--page-bg-color);
+    aspect-ratio: 1;
+}
