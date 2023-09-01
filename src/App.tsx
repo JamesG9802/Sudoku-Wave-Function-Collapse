@@ -1,6 +1,8 @@
 import './App.css';
 import Sudoku from './Sudoku';
 import NumberSelector from './NumberSelector';
+import Solver from './Solver';
+
 let isDarkMode = false;
 function toggleDarkMode() {
   isDarkMode = !isDarkMode;
@@ -29,7 +31,10 @@ function App() {
         <button onClick={toggleDarkMode}>
           CLICK ME
         </button>
-        <Sudoku></Sudoku>
+        <div className="column">
+          <Sudoku></Sudoku>
+          <Solver></Solver>
+        </div>
         <NumberSelector></NumberSelector>
       </div>
     </>

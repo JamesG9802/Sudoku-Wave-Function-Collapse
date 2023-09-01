@@ -45,7 +45,7 @@ class Cell extends React.Component {
       currentCell.componentReference.current.focus();
   }
   onKeyPressHandler(event : KeyboardEvent) {
-    if(isNaN(Number(event.key))) return;
+    if(isNaN(Number(event.key)) || Number(event.key) == 0) return;
     this.value = Number(event.key); 
     this.forceUpdate();
   }
@@ -67,7 +67,7 @@ class Cell extends React.Component {
       return (
         <>
           <div ref={this.componentReference} tabIndex={0}
-            onKeyUp={this.onKeyPressHandler} onClick={this.onClickHandler} className={className}>
+            onKeyUp={this.onKeyPressHandler} onClick={this.onClickHandler} className={className} data-value={this.value}>
             {value}
           </div>
         </>
@@ -80,7 +80,7 @@ class Cell extends React.Component {
       let optionClassName = "Sudoku_cell_option " + isSelected;
         return (
           <>
-            <div className={containerClassName}>
+            <div data-value={this.value} className={containerClassName}>
               <div className={optionClassName}>1</div><div className={optionClassName}>2</div><div className={optionClassName}>3</div>
               <div className={optionClassName}>4</div><div className={optionClassName}>5</div><div className={optionClassName}>6</div>
               <div className={optionClassName}>7</div><div className={optionClassName}>8</div><div className={optionClassName}>9</div>

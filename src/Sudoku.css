@@ -19,6 +19,11 @@
     background-color: var(--page-bg-color);
     font-size: var(--text-larger-font-size);
     aspect-ratio: 1;
+
+    /*  https://www.w3schools.com/howto/howto_css_disable_text_selection.asp    */
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
 }
 .Sudoku_cell:hover {
     color: var(--text-color-highlight);
@@ -38,6 +43,11 @@
     text-align: center;
     background-color: var(--page-bg-color);
     aspect-ratio: 1;
+
+    /*  https://www.w3schools.com/howto/howto_css_disable_text_selection.asp    */
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
 }
 .Sudoku_selected {
     background-color: var(--accent2-color);

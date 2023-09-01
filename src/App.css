@@ -41,3 +41,11 @@ body {
   color: var(--text-color);
   font-family: var(--text-standard-font-family);
 }
+
+.column {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
+}
