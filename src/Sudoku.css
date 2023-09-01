@@ -39,3 +39,6 @@
     background-color: var(--page-bg-color);
     aspect-ratio: 1;
 }
+.Sudoku_selected {
+    background-color: var(--accent2-color);
+}
