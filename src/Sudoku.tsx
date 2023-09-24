@@ -6,12 +6,23 @@ import React, { KeyboardEvent, createRef, RefObject } from 'react';
  */
 export let currentCell : Cell;
 
+/**
+ * The internal board representation of all the sudoku cells.
+ */
+export let board : Cell[][];
+
+let bigCellCount = 0;
+let currentCellCount = 0;
+
 class Cell extends React.Component {
+  /**
+   * A valid value ranges from 1 to 9. An invalid value is stored as -1.
+   */
   value : any;
   isSelected : boolean;
   componentReference : RefObject<any>;
 
-  constructor(props : {value?: string}) {
+  constructor(props : {bigCellCount: number, value?: string}) {
     super(props);
     
     this.value = Number(props.value);
@@ -21,8 +32,14 @@ class Cell extends React.Component {
     this.onClickHandler = this.onClickHandler.bind(this);
     this.onKeyPressHandler = this.onKeyPressHandler.bind(this);
     this.setValue = this.setValue.bind(this);
-  }
 
+    const row = (props.bigCellCount - props.bigCellCount % 3);
+    const col = (props.bigCellCount % 3) * 3;
+    const myRow = row + (currentCellCount - currentCellCount % 3) / 3;
+    const myCol = col + (currentCellCount % 3);
+    board[myRow][myCol] = this;
+    currentCellCount++;
+  }
   /**
    * Sets the select property of a cell and sets the currently selected cell to this.
    */
@@ -96,18 +113,23 @@ class Cell extends React.Component {
  * @returns component representing the BigCell
  */
 function BigCell() {
-  return (
+  currentCellCount = 0;
+  let bigCell = (
     <>
       <div className="Sudoku_bigcell">
-        <Cell value="-1"/><Cell value="-1"/><Cell value="-1"/>
-        <Cell value="-1"/><Cell value="-1"/><Cell value="-1"/>
-        <Cell value="-1"/><Cell value="-1"/><Cell value="-1"/>
+        <Cell bigCellCount={bigCellCount} value="-1"/><Cell bigCellCount={bigCellCount} value="-1"/><Cell bigCellCount={bigCellCount} value="-1"/>
+        <Cell bigCellCount={bigCellCount} value="-1"/><Cell bigCellCount={bigCellCount} value="-1"/><Cell bigCellCount={bigCellCount} value="-1"/>
+        <Cell bigCellCount={bigCellCount} value="-1"/><Cell bigCellCount={bigCellCount} value="-1"/><Cell bigCellCount={bigCellCount} value="-1"/>
       </div>
     </>
   );
+  bigCellCount++;
+  return bigCell;
 }
 
 function Board() {
+  board = [[],[],[],[],[],[],[],[],[],];
+  bigCellCount = 0;
     return (
       <>
         <div id="Sudoku_board">

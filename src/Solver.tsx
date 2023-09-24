@@ -1,5 +1,5 @@
 import "./Solver.css"
-
+import {board} from "./Sudoku"
 /**
  * Gets the board and returns it as a 9 x 9 matrix. -1 means nothing in the cell
  * @returns a 2D array representing the board
@@ -16,28 +16,40 @@ function getBoard() {
         [-1, -1, -1, -1, -1, -1, -1, -1, -1, ],
         [-1, -1, -1, -1, -1, -1, -1, -1, -1, ],
     ];
-    const board = document.getElementById("Sudoku_board");
-    if(board == undefined) return null;
-    const bigCells = board.getElementsByClassName("Sudoku_bigcell");
-    if(bigCells.length != 9)    return null;
-    for(let i = 0; i < bigCells.length; i++)
+    for(let i = 0; i < board.length; i++)
     {
-        //  Row and col of the upperleft most cell of the bigcell.
-        const row = (i - i % 3);
-        const col = (i % 3) * 3;
-
-        const cells = bigCells[i].children;
-        for(let j = 0; j < cells.length; j++)
+        for(let j = 0; j < board[i].length; j++)
         {
-            const myRow = row + (j - j % 3) / 3;
-            const myCol = col + (j % 3);
-            if((cells[j] as HTMLElement).dataset.value != undefined)
-                result[myRow][myCol] = Number((cells[j] as HTMLElement).dataset.value);
-            else
-                result[myRow][myCol] = -1;
+            if(board[i][j].value != -1)
+                result[i][j] = board[i][j].value; 
         }
     }
     return result;
+}
+
+/**
+ * Updates the current board with new values.
+ * @param newBoard Board to replace the current one
+ */
+function setBoard(newBoard : number[][]) {
+    for(let i = 0; i < board.length; i++)
+    {
+        for(let j = 0; j < board[i].length; j++)
+        {
+            board[i][j].setValue(newBoard[i][j]); 
+        }
+    }
+}
+
+/**
+ * Sets a single cell on the board
+ * @param row
+ * @param col 
+ * @param value 
+ */
+function setCell(row: number, col: number, value: Number)
+{
+    board[row][col].setValue(value);
 }
 
 /**
@@ -85,8 +97,21 @@ function isValid() {
     return true;
 }
 
+/**
+ * 
+ */
 function solveSudoku() {
-    console.log(isValid())
+    console.log(getBoard());
+    console.log(board);
+    setBoard([[1,2,3,1,1,1,1,1,1],
+        [4,5,6,1,1,1,1,1,1],
+        [7,8,9,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1],])
 }
 
 function Solver() {
