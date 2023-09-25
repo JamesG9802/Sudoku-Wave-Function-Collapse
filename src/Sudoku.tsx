@@ -62,6 +62,12 @@ class Cell extends React.Component {
       currentCell.componentReference.current.focus();
   }
   onKeyPressHandler(event : KeyboardEvent) {
+    if(event.key === "Backspace" || event.key === "Delete")
+    {
+      this.value = -1;
+      this.forceUpdate();
+      return; 
+    }
     if(isNaN(Number(event.key)) || Number(event.key) == 0) return;
     this.value = Number(event.key); 
     this.forceUpdate();

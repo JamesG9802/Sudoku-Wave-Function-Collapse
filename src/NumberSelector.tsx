@@ -4,7 +4,13 @@ import { currentCell } from './Sudoku';
 
 function selectNumberOption(event : MouseEvent) {
     if(currentCell != undefined)
-        currentCell.setValue(Number((event.target as HTMLElement).dataset.value));
+    {
+        if((event.target as HTMLElement).dataset.value == "X")
+            currentCell.setValue(-1);
+        else
+            currentCell.setValue(Number((event.target as HTMLElement).dataset.value));
+    }    
+
 }
 function NumberOption(props: {children?: any, value: string}) {
     return (
@@ -28,6 +34,7 @@ function NumberSelector() {
             <NumberOption value="7"></NumberOption>
             <NumberOption value="8"></NumberOption>
             <NumberOption value="9"></NumberOption>
+            <NumberOption value="X"></NumberOption>
         </div>
       </>
     );
