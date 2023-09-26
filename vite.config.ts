@@ -6,11 +6,6 @@ import react from '@vitejs/plugin-react-swc'
 export default defineConfig({
   plugins: [react()],
 
-  //  https://stackoverflow.com/a/66867648
-  build: {
-    outDir: 'docs'
-  },
-
   //  https://github.com/sitek94/vite-deploy-demo
   base: '/Sudoku-Wave-Function-Collapse/'
 })
