@@ -144,11 +144,15 @@ function generatePossibilities(board: number[][]) {
  * 
  */
 function solveSudoku() {
-    let _board = getBoard();
-
+    let _initalboard = getBoard();
+    let _board;
+    let failures = 0;
     //  Stop if the user wants to solve with a solved board
-    if(isSolved(_board))    return;
-
+    while(failures < 50)
+    {
+        _board = getBoard();
+        if(isSolved(_board))    return;
+        
     let possibilities = generatePossibilities(_board);
     /**
      * Stores the best options in an array formatted like:
@@ -157,16 +161,18 @@ function solveSudoku() {
      * 2 - column
      */
     let bestOptions : number[][] = [];
-    for(let i = 0; i < possibilities.length; i++)
+    let isRestarting = false;
+    for(let i = 0; i < possibilities.length && !isRestarting; i++)
     {
-        for(let j = 0; j < possibilities[i].length; j++)
+        for(let j = 0; j < possibilities[i].length && !isRestarting; j++)
         {
             if(possibilities[i][j].size == 0)
             {
                 if(_board[i][j] == -1)
                 {
                     console.log("An invalid board state has been found for: ", i, j);
-                    return;
+                    isRestarting = true;
+                    continue;
                 }
                 else continue;  //  collapsed position
             }
@@ -184,19 +190,27 @@ function solveSudoku() {
                 bestOptions = [[possibilities[i][j].size, i, j]];
         }
     }
+
+    //  Just restart the search if a failure is made.
+    if(isRestarting)
+    {
+        failures++;
+        console.log(failures);
+        setBoard(_initalboard);
+        continue;
+    }
+
     //  pick a random choice
     let option = bestOptions[Math.floor(Math.random() * bestOptions.length)];
     //  apply random option
     let collapsedValue =  Array.from(possibilities[option[1]][option[2]])
         [Math.floor(Math.random() * possibilities[option[1]][option[2]].size)]
     setCell(option[1], option[2], collapsedValue);
-
-    //  Stop when board is solved
-    _board[option[1]][option[2]] = collapsedValue;
-    if(isSolved(_board))
-        return;
-    else
-        solveSudoku();
+    }
+    if(!isSolved(getBoard()))
+    {
+        alert("Couldn't solve the board in 50 attempts; Try again or make sure the puzzle is valid.");
+    }
 }
 
 function Solver() {

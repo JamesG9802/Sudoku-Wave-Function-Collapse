@@ -52,3 +52,6 @@
 .Sudoku_selected {
     background-color: var(--accent2-color);
 }
+.Sudoku_userinputted {
+    font-weight: bold;
+}

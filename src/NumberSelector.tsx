@@ -1,14 +1,14 @@
 import './NumberSelector.css'
-import React, { MouseEvent } from 'react';
+import { MouseEvent } from 'react';
 import { currentCell } from './Sudoku';
 
 function selectNumberOption(event : MouseEvent) {
     if(currentCell != undefined)
     {
         if((event.target as HTMLElement).dataset.value == "X")
-            currentCell.setValue(-1);
+            currentCell.setUserValue(-1);
         else
-            currentCell.setValue(Number((event.target as HTMLElement).dataset.value));
+            currentCell.setUserValue(Number((event.target as HTMLElement).dataset.value));
     }    
 
 }

@@ -14,7 +14,16 @@ export let board : Cell[][];
 let bigCellCount = 0;
 let currentCellCount = 0;
 
-class Cell extends React.Component {
+interface CellProps {
+  bigCellCount : number,
+  value : any
+}
+class Cell extends React.Component<CellProps> {
+
+  /**
+   * True if the user specifically added the value through the keyboard.
+   */
+  userInputted : boolean;
   /**
    * A valid value ranges from 1 to 9. An invalid value is stored as -1.
    */
@@ -22,9 +31,10 @@ class Cell extends React.Component {
   isSelected : boolean;
   componentReference : RefObject<any>;
 
-  constructor(props : {bigCellCount: number, value?: string}) {
+  constructor(props : CellProps) {
     super(props);
     
+    this.userInputted = false;
     this.value = Number(props.value);
     this.isSelected = false;
     this.componentReference = createRef();
@@ -32,7 +42,8 @@ class Cell extends React.Component {
     this.onClickHandler = this.onClickHandler.bind(this);
     this.onKeyPressHandler = this.onKeyPressHandler.bind(this);
     this.setValue = this.setValue.bind(this);
-
+    this.setUserValue = this.setUserValue.bind(this);
+    
     const row = (props.bigCellCount - props.bigCellCount % 3);
     const col = (props.bigCellCount % 3) * 3;
     const myRow = row + (currentCellCount - currentCellCount % 3) / 3;
@@ -65,25 +76,34 @@ class Cell extends React.Component {
     if(event.key === "Backspace" || event.key === "Delete")
     {
       this.value = -1;
+      this.userInputted = false;
       this.forceUpdate();
       return; 
     }
     if(isNaN(Number(event.key)) || Number(event.key) == 0) return;
-    this.value = Number(event.key); 
-    this.forceUpdate();
+    this.setUserValue(Number(event.key));
   }
   setValue(value: any) {
     this.value = value;
     this.forceUpdate();
   }
+  /**
+   * Identical to set value, but also sets the "userInputted" flag.
+   * @param value 
+   */
+  setUserValue(value: any) {
+    this.userInputted = true;
+    this.setValue(value);
+  }
   render() {
     let isSelected = "";
-    if(this.isSelected) isSelected += "Sudoku_selected";
-
+    if(this.isSelected) isSelected += " Sudoku_selected";
+    let isUserInputted = "";
+    if(this.userInputted) isUserInputted += " Sudoku_userinputted";
     if(this.value != undefined)
     {
       let value = String(this.value);
-      let className = "Sudoku_cell " + isSelected;
+      let className = "Sudoku_cell" + isSelected + isUserInputted;
       //  has no value, but not in solving mode yet
       if(this.value == "-1")
         value = "";
