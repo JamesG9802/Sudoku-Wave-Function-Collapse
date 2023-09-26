@@ -9,5 +9,8 @@ export default defineConfig({
   //  https://stackoverflow.com/a/66867648
   build: {
     outDir: 'docs'
-  }
+  },
+
+  //  https://github.com/sitek94/vite-deploy-demo
+  base: '/Sudoku-Wave-Function-Collapse/'
 })
