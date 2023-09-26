@@ -8,6 +8,6 @@ export default defineConfig({
 
   //  https://stackoverflow.com/a/66867648
   build: {
-    outDir: '../docs'
+    outDir: 'docs'
   }
 })
