@@ -6,7 +6,10 @@ function selectNumberOption(event : MouseEvent) {
     if(currentCell != undefined)
     {
         if((event.target as HTMLElement).dataset.value == "X")
+        {
             currentCell.setUserValue(-1);
+            currentCell.userInputted = false;
+        }    
         else
             currentCell.setUserValue(Number((event.target as HTMLElement).dataset.value));
     }    
