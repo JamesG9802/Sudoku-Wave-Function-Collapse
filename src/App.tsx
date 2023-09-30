@@ -4,6 +4,7 @@ import NumberSelector from './NumberSelector';
 import Solver from './Solver';
 import Reset from './Reset';
 
+/*
 let isDarkMode = false;
 function toggleDarkMode() {
   isDarkMode = !isDarkMode;
@@ -24,6 +25,7 @@ function toggleDarkMode() {
     root.style.setProperty("--text-color-highlight", "var(--text-color-highlight-light)");
   }
 }
+*/
 
 function App() {
   return (
