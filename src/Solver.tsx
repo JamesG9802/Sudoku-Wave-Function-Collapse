@@ -1,5 +1,12 @@
 import "./Solver.css"
 import {board} from "./Sudoku"
+import { debug } from "./main"
+
+interface Mistake {
+    board: number[][],
+    move: number[]
+}
+
 /**
  * Gets the board and returns it as a 9 x 9 matrix. -1 means nothing in the cell
  * @returns a 2D array representing the board
@@ -102,14 +109,13 @@ function isSolved(board : number[][]) {
  * @param board - the board to be evaluated
  * @returns the potential moves for each square.
  */
-function generatePossibilities(board: number[][]) {
+function generatePossibilities(board: number[][], mistakes: Mistake[]) {
     let possibilities : Set<number>[][] = [];
     for(let i = 0; i < board.length; i++)
     {
         possibilities[i] = [];
         for(let j = 0; j < board[i].length; j++)
         {
-            
             if(board[i][j] != -1)   //  already has a collapsed value.
             {
                 possibilities[i][j] = new Set<number>();
@@ -137,79 +143,143 @@ function generatePossibilities(board: number[][]) {
                 possibilities[i - i % 3 + (k - k % 3) / 3][j - j % 3 + k % 3].delete(board[i][j]);
         }
     }
+    for(let i = 0; i < mistakes.length; i++) {
+        let boardMatchesMistake = true;
+        for(let row = 0; row < board.length && boardMatchesMistake; row++) {
+            for(let col = 0; col < board[row].length && boardMatchesMistake; col++) {
+                if(board[row][col] != mistakes[i].board[row][col])
+                    boardMatchesMistake = false;
+            }
+        }
+        if(boardMatchesMistake)
+        {
+            possibilities[mistakes[i].move[0]][mistakes[i].move[1]].delete(mistakes[i].move[2]);
+        }
+    }
     return possibilities;
 }
 
 /**
- * 
+ *  Brute force wave function collapse solver; just restart if a contradiction is found.
  */
 function solveSudoku() {
     let _initalboard = getBoard();
     let _board;
     let failures = 0;
+
+    let mistakes: Mistake[] = [];
+    let lastMove: number[] = [];
+
+
     //  Stop if the user wants to solve with a solved board
-    while(failures < 50)
+    let count = 0;
+    while(failures < 10000)
     {
+        count++;
         _board = getBoard();
-        if(isSolved(_board))    return;
+        if(isSolved(_board)){
+            return;
+        }    
         
-    let possibilities = generatePossibilities(_board);
-    /**
-     * Stores the best options in an array formatted like:
-     * 0 - size
-     * 1 - row
-     * 2 - column
-     */
-    let bestOptions : number[][] = [];
-    let isRestarting = false;
-    for(let i = 0; i < possibilities.length && !isRestarting; i++)
-    {
-        for(let j = 0; j < possibilities[i].length && !isRestarting; j++)
+        let possibilities = generatePossibilities(_board, mistakes);
+        /**
+         * Stores the best options in an array formatted like:
+         * 0 - size
+         * 1 - row
+         * 2 - column
+         */
+        let bestOptions : number[][] = [];
+        let isRestarting = false;
+        for(let i = 0; i < possibilities.length && !isRestarting; i++)
         {
-            if(possibilities[i][j].size == 0)
+            for(let j = 0; j < possibilities[i].length && !isRestarting; j++)
             {
-                if(_board[i][j] == -1)
+                if(possibilities[i][j].size == 0)
                 {
-                    console.log("An invalid board state has been found for: ", i, j);
-                    isRestarting = true;
-                    continue;
+                    if(_board[i][j] == -1)
+                    {
+                        if(debug)
+                        {
+                            console.log("Failure #"+ failures + " An invalid board state has been found for: ", i, j);
+                            if(lastMove.length > 0)
+                                console.log("Bad move: (" + lastMove[0] + "," + lastMove[1] +")=" + lastMove[2]);
+                            let str = "  0 1 2 3 4 5 6 7 8\n";
+                            for(let row = 0; row < _board.length; row++) {
+                                str+= (row) + " ";
+                                for(let col = 0; col < _board[row].length; col++)
+                                {
+                                    if(_board[row][col] != -1)
+                                        str+= _board[row][col] +" "
+                                    else
+                                        str+= "  "
+                                }
+                                str+="\n"
+                            }
+                            console.log(str);
+                        }
+                        isRestarting = true;
+                        continue;
+                    }
+                    else continue;  //  collapsed position
                 }
-                else continue;  //  collapsed position
+
+                //  this is the first possibility
+                if(bestOptions.length == 0)
+                    bestOptions.push([possibilities[i][j].size, i, j]);
+                //  disregard possibility since it has higher entropy than better option found
+                else if (possibilities[i][j].size > bestOptions[0][0])
+                    continue;
+                //  same entropy so add to possibilities;
+                else if (possibilities[i][j].size == bestOptions[0][0])
+                    bestOptions.push([possibilities[i][j].size, i, j]);
+                //  lower entropy than all options found
+                else
+                    bestOptions = [[possibilities[i][j].size, i, j]];
             }
-            //  this is the first possibility
-            if(bestOptions.length == 0)
-                bestOptions.push([possibilities[i][j].size, i, j]);
-            //  disregard possibility since it has higher entropy than better option found
-            else if (possibilities[i][j].size > bestOptions[0][0])
-                continue;
-            //  same entropy so add to possibilities;
-            else if (possibilities[i][j].size == bestOptions[0][0])
-                bestOptions.push([possibilities[i][j].size, i, j]);
-            //  lower entropy than all options found
-            else
-                bestOptions = [[possibilities[i][j].size, i, j]];
         }
-    }
 
-    //  Just restart the search if a failure is made.
-    if(isRestarting)
-    {
-        failures++;
-        console.log(failures);
-        setBoard(_initalboard);
-        continue;
-    }
+        if(bestOptions.length == 0)
+            isRestarting = true;
+        //  Just restart the search if a failure is made.
+        if(isRestarting)
+        {
 
-    //  pick a random choice
-    let option = bestOptions[Math.floor(Math.random() * bestOptions.length)];
-    //  apply random option
-    let collapsedValue =  Array.from(possibilities[option[1]][option[2]])
-        [Math.floor(Math.random() * possibilities[option[1]][option[2]].size)]
-    setCell(option[1], option[2], collapsedValue);
+            //  add last move to mistakes
+            let board = getBoard();
+
+            //  there was no last move; the board is completely invalid
+            if(lastMove.length == 0)
+            {
+                console.log("count is: ", count)
+                break;
+            }
+            board[lastMove[0]][lastMove[1]] = -1;
+            let mistake: Mistake = {
+                board: board,
+                move: [lastMove[0], lastMove[1], lastMove[2] ]
+            };
+            mistakes.push(mistake);
+
+            //  reset for next iteration
+            count = 0;
+            failures++;
+            setBoard(_initalboard);
+            lastMove = [];
+            continue;
+        }
+
+        //  pick a random choice
+        let option = bestOptions[Math.floor(Math.random() * bestOptions.length)];
+        //  apply random option
+        let collapsedValue =  Array.from(possibilities[option[1]][option[2]])
+            [Math.floor(Math.random() * possibilities[option[1]][option[2]].size)]
+        setCell(option[1], option[2], collapsedValue);
+        lastMove = [option[1], option[2], collapsedValue];
     }
+    console.log("Mistakes made: ", mistakes.length);
     if(!isSolved(getBoard()))
     {
-        alert("Couldn't solve the board in 50 attempts; Try again or make sure the puzzle is valid.");
+        alert("Couldn't solve the board in 10000 attempts; Try again or make sure the puzzle is valid.");
     }
 }
 
