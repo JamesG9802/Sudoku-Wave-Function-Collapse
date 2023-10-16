@@ -1,6 +1,7 @@
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 
+export let debug = false;
 
 /**
  * v1   
@@ -13,6 +14,9 @@ import App from './App.tsx'
  *      +   Added:      Remove Dark mode.
  *      +   Expected:   Fix sizing.
  *      +   Expected:   Add help text.
+ * v1.2
+ *      +   Added:      Strengthen solver against more difficult puzzles.
+ *      +   Expected:   Multithreading support for stronger depth solver.
  */
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <App />
