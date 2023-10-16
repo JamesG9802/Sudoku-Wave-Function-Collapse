@@ -16,6 +16,7 @@ export let debug = false;
  *      +   Expected:   Add help text.
  * v1.2
  *      +   Added:      Strengthen solver against more difficult puzzles.
+ *      +   Expected:   Multithreading support for stronger depth solver.
  */
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <App />

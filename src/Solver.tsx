@@ -109,7 +109,7 @@ function isSolved(board : number[][]) {
  * @param board - the board to be evaluated
  * @returns the potential moves for each square.
  */
-function generatePossibilities(board: number[][], mistakes: Mistake[]) {
+function generatePossibilities(board: number[][], mistakes: Mistake[] = []) {
     let possibilities : Set<number>[][] = [];
     for(let i = 0; i < board.length; i++)
     {
@@ -160,9 +160,97 @@ function generatePossibilities(board: number[][], mistakes: Mistake[]) {
 }
 
 /**
- *  Brute force wave function collapse solver; just restart if a contradiction is found.
+ *  Brute force wave function collapse solver; just restart if a contradiction is found. Will prompt user for the stronger solver.
  */
 function solveSudoku() {
+    let _initalboard = getBoard();
+    let _board;
+    let failures = 0;
+    //  Stop if the user wants to solve with a solved board
+    while(failures < 50)
+    {
+        _board = getBoard();
+        if(isSolved(_board))    return;
+        
+    let possibilities = generatePossibilities(_board);
+    /**
+     * Stores the best options in an array formatted like:
+     * 0 - size
+     * 1 - row
+     * 2 - column
+     */
+    let bestOptions : number[][] = [];
+    let isRestarting = false;
+    for(let i = 0; i < possibilities.length && !isRestarting; i++)
+    {
+        for(let j = 0; j < possibilities[i].length && !isRestarting; j++)
+        {
+            if(possibilities[i][j].size == 0)
+            {
+                if(_board[i][j] == -1)
+                {
+                    console.log("An invalid board state has been found for: ", i, j);
+                    isRestarting = true;
+                    continue;
+                }
+                else continue;  //  collapsed position
+            }
+            //  this is the first possibility
+            if(bestOptions.length == 0)
+                bestOptions.push([possibilities[i][j].size, i, j]);
+            //  disregard possibility since it has higher entropy than better option found
+            else if (possibilities[i][j].size > bestOptions[0][0])
+                continue;
+            //  same entropy so add to possibilities;
+            else if (possibilities[i][j].size == bestOptions[0][0])
+                bestOptions.push([possibilities[i][j].size, i, j]);
+            //  lower entropy than all options found
+            else
+                bestOptions = [[possibilities[i][j].size, i, j]];
+        }
+    }
+
+    //  Just restart the search if a failure is made.
+    if(isRestarting)
+    {
+        failures++;
+        console.log(failures);
+        setBoard(_initalboard);
+        continue;
+    }
+
+    //  pick a random choice
+    let option = bestOptions[Math.floor(Math.random() * bestOptions.length)];
+    //  apply random option
+    let collapsedValue =  Array.from(possibilities[option[1]][option[2]])
+        [Math.floor(Math.random() * possibilities[option[1]][option[2]].size)]
+    setCell(option[1], option[2], collapsedValue);
+    }
+    if(!isSolved(getBoard()))
+    {
+        if(confirm("Couldn't solve the board in 50 attempts. Make sure the puzzle is valid. Press OK to try again with the stronger solver."))
+            solveSudoku_Stronger();
+    }
+}
+
+/**
+ *  Chooses one of the stronger search algorithms with a preference to the web worker one.
+ */
+function solveSudoku_Stronger() {
+    /*if (!window.Worker) {
+        console.log("Worker not supported in your browser");
+        solveSudoku_Stronger_NoWebWorker();
+    }
+    else {
+    }
+    */
+    solveSudoku_Stronger_NoWebWorker();
+}
+
+/**
+ *  Brute force wave function collapse solver; just restart if a contradiction is found.
+ */
+function solveSudoku_Stronger_NoWebWorker() {
     let _initalboard = getBoard();
     let _board;
     let failures = 0;
@@ -170,16 +258,15 @@ function solveSudoku() {
     let mistakes: Mistake[] = [];
     let lastMove: number[] = [];
 
-
-    //  Stop if the user wants to solve with a solved board
     let count = 0;
     while(failures < 10000)
     {
         count++;
         _board = getBoard();
-        if(isSolved(_board)){
-            return;
-        }    
+        
+        //  Stop if the user wants to solve with a solved board
+        if(isSolved(_board))
+            return;    
         
         let possibilities = generatePossibilities(_board, mistakes);
         /**
