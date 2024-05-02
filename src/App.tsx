@@ -31,6 +31,7 @@ function App() {
   return (
     <>
       <div className="App">
+        <p>Warning: This project is be deprecated and rebuilt in the future. It still works but there are...peculiarities with the UI at the moment.</p>
         <div className="column">
           <Sudoku></Sudoku>
           <div className="row">
