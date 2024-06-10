@@ -1,0 +1,261 @@
+.Sudoku {
+  display: inline-flex;
+  flex-direction: row;
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
+}
+
+@media only screen and (max-width: 480px) {
+    /*  Increasing specificity. */
+    body .Sudoku {
+        flex-direction: column;
+    }
+    body .Sudoku-Cell {
+        min-width: 2rem;
+        font-size: var(--text-standard-font-size);
+    }
+    body .Number-UI-Container {
+        display: flex;
+    
+        flex-direction: row;
+        flex-wrap: wrap;
+
+        justify-content: center;
+        align-items: center;
+    }
+    body .Number-UI {
+        font-size: var(--text-large-font-size);
+    }
+    .Sudoku-Controls > div > span {
+        display: none;
+    }
+    body .Sudoku-Right-Panel-Mode {
+        max-width: 100%;
+    }
+}
+@media only screen and (max-width: 840px) and (min-width: 480px) {
+    /*  Increasing specificity. */
+    body .Sudoku {
+        flex-direction: column;
+    }
+    body .Sudoku-Cell {
+        min-width: 3rem;
+        font-size: var(--text-large-font-size);
+    }
+    body .Number-UI-Container {
+        display: flex;
+    
+        flex-direction: row;
+        flex-wrap: wrap;
+
+        justify-content: center;
+        align-items: center;
+    }
+    .Sudoku-Controls > div > span {
+        display: none;
+    }
+    
+    body .Sudoku-Right-Panel-Mode {
+        max-width: 100%;
+    }
+}
+/*
+    A sudoku board is a 3x3 board of "big cells" which themselves are 3x3 boards of cells.
+*/
+.Sudoku-Board {
+    display: grid;
+    
+    background-color: var(--text-color);
+    border: 1px solid var(--text-color);
+
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 1px;
+}
+.Sudoku-Board:focus {
+    outline: none;
+}
+
+.Sudoku-Big-Cell {
+    display: grid;
+    
+    background-color: var(--text-color);
+    border: 1px solid var(--text-color);
+
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 1px;
+}
+
+.Sudoku-Cell {
+    display: flex;
+    flex-direction: column;
+
+    background-color: var(--page-bg-card-color);
+
+    font-size: var(--text-larger-font-size);
+    
+    aspect-ratio: 1;
+    min-width: 4rem;
+
+    justify-content: center;
+    align-items: center;
+
+    user-select: none;
+    cursor: pointer;
+
+    transition: all ease-in-out .1s;
+}
+.Sudoku-Cell > p {
+    display: inline-flex;
+    margin: 0px;
+    text-align: center;
+}
+
+.Sudoku-Cell-Normal:hover {
+    filter: brightness(85%);
+}
+.Sudoku-Cell-Normal:active {
+    filter: brightness(75%);
+}
+
+.Sudoku-Cell-Selected {
+    color: var(--text-color-highlight);
+    background-color: var(--accent-color);
+    opacity: 1;
+}
+
+.Sudoku-Cell-Indicator {
+    background-color: var(--accent-color);
+    opacity: .8;
+}
+.Sudoku-Cell-Indicator:hover {
+    filter: brightness(85%);
+}
+
+.Sudoku-Empty {
+    color: rgb(0, 0, 0, 0) !important;
+}
+
+.Sudoku-Right-Panel {
+    display: flex;
+    
+    flex-direction: column;
+    row-gap: 1rem;
+}
+
+.Sudoku-Right-Panel-Mode {
+    max-width: 18rem;
+    
+    border-radius: 1rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    padding-left: .5rem;
+    padding-right: .5rem;
+
+    transition: all ease-in-out .1s;
+}
+
+.Sudoku-Controls {
+    display: flex;
+
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+.Sudoku-Controls > div {
+    display: flex;
+
+    flex-direction: column;
+
+    user-select: none;
+}
+.Sudoku-Controls > div > span {
+    font-size: var(--text-small-font-size);
+}
+
+.Sudoku-Controls-Icon {
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+
+    background-color: var(--page-bg-card-color);
+
+    aspect-ratio: 1;
+    border-radius: 9999px;
+    padding: 8px;
+
+    cursor: pointer;
+
+    transition: all ease-in-out .1s;
+}
+.Sudoku-Controls-Icon:hover {
+    filter: brightness(85%);
+}
+.Sudoku-Controls-Icon:active {
+    filter: brightness(75%);
+}
+
+.Number-UI-Container {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.Number-UI {
+    display: flex;
+    flex-direction: column;
+
+    background-color: var(--page-bg-card-color); 
+    
+    border-radius: .5rem;
+    
+    color: var(--accent-color);
+    font-size: var(--text-larger-font-size);
+
+    aspect-ratio: 1;
+    min-width: 4rem;
+
+    justify-content: center;
+    align-items: center;
+
+    user-select: none;
+    cursor: pointer;
+
+    transition: all ease-in-out .1s;
+}
+.Number-UI:hover {
+    filter: brightness(85%);
+}
+.Number-UI:active {
+    filter: brightness(75%);
+}
+.Number-UI > p {
+    display: inline-flex;
+    margin: 1rem;
+    text-align: center;
+
+    font-weight: bold;
+}
+
+.Solving {
+    color: var(--solving-color);
+}
+.Editing {
+    color: var(--editing-color);
+}
+
+.Solving-Ignore {
+    background-color: red;
+}
+
+.Solving-Possible {
+    background-color: var(--text-secondary-color);
+}
+
+.Solving-Done {
+    cursor: default;
+}
