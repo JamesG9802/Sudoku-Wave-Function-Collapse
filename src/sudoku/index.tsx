@@ -407,7 +407,7 @@ export default function Sudoku() {
               }}
             >
               <Icon path={mdiWrenchClock} size={1.5} />
-              <span className="Sudoku-Button-Text">Time</span>
+              <span className="Sudoku-Button-Text">Speed</span>
             </Button>
             <Popover
               open={show_speed_popover}

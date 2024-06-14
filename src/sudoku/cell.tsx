@@ -39,6 +39,7 @@ export type CellProps = {
 
 /**
  * Get the red, green, and blue color components of a "rgb(RRR, GGG, BBB)" or "#RRGGBB" formatted string. 
+ * Or even "#RGB"
  * @param color 
  */
 function get_rgb(color: string): {
@@ -64,6 +65,14 @@ function get_rgb(color: string): {
     }
     //  Sometimes it is in #RRGGBB format
     else if(color.charAt(0) == "#") {
+        if(color.length == 4) {
+            return {
+                red: Number("0x" + color.substring(1, 2)),
+                green: Number("0x" + color.substring(2, 3)),
+                blue: Number("0x" + color.substring(3, 4)),
+            }
+        }
+        else
         return {
             red: Number("0x" + color.substring(1, 3)),
             green: Number("0x" + color.substring(3, 5)),
