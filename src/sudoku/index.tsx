@@ -246,6 +246,59 @@ export default function Sudoku() {
     ui_set_sudoku(sudoku, !in_manual_mode)
   }
 
+  function ui_key_handler(event: React.KeyboardEvent<HTMLDivElement>) {
+    if(selected_row < 0 || selected_col < 0)
+      return;
+    let number = Number(event.key);
+    if(!isNaN(number) && number != 0)
+    {
+      ui_set_sudoku_value(selected_row * 9 + selected_col, number);
+    } 
+    else {
+      switch(event.key) {
+        default: 
+          break;
+        case "ArrowLeft":
+          if(selected_col > 0)
+            ui_update_selected(selected_row, selected_col - 1);
+          event.preventDefault();
+          break;
+        case "ArrowRight":
+          if(selected_col < 8)
+            ui_update_selected(selected_row, selected_col + 1);
+          event.preventDefault();
+          break;
+        case "ArrowUp":
+          if(selected_row > 0)
+            ui_update_selected(selected_row - 1, selected_col);
+          event.preventDefault();
+          break;
+        case "ArrowDown":
+          if(selected_row < 8)
+            ui_update_selected(selected_row + 1, selected_col);
+          event.preventDefault();
+          break;
+        case "Backspace":
+        case "Delete":
+          ui_delete_sudoku_value(selected_row * 9 + selected_col);
+          break;
+        // case "[":
+        //   console.log(sudoku.board);
+        //   navigator.clipboard.writeText(JSON.stringify(sudoku.board));
+        //   break;
+          
+        // case "]":
+        //   navigator.clipboard.readText()
+        //   .then((text) => {
+        //     console.log(text);
+        //     sudoku.board = JSON.parse(text) as number[];
+        //     set_sudoku({...sudoku});
+        //   });
+        //   break;
+      }
+    }
+  }
+
   return (
     <div>
       <div className="Sudoku">
@@ -271,54 +324,7 @@ export default function Sudoku() {
              * Arrow keys move the selected square.
              * Backspace and delete remove the number.
              */
-            onKeyDown={(event) => {
-              if(selected_row < 0 || selected_col < 0)
-                return;
-              let number = Number(event.key);
-              if(!isNaN(number) && number != 0)
-              {
-                ui_set_sudoku_value(selected_row * 9 + selected_col, number);
-              } 
-              else {
-                switch(event.key) {
-                  default: 
-                    break;
-                  case "ArrowLeft":
-                    if(selected_col > 0)
-                      ui_update_selected(selected_row, selected_col - 1);
-                    break;
-                  case "ArrowRight":
-                    if(selected_col < 8)
-                      ui_update_selected(selected_row, selected_col + 1);
-                    break;
-                  case "ArrowUp":
-                    if(selected_row > 0)
-                      ui_update_selected(selected_row - 1, selected_col);
-                    break;
-                  case "ArrowDown":
-                    if(selected_row < 8)
-                      ui_update_selected(selected_row + 1, selected_col);
-                    break;
-                  case "Backspace":
-                  case "Delete":
-                    ui_delete_sudoku_value(selected_row * 9 + selected_col);
-                    break;
-                  case "[":
-                    console.log(sudoku.board);
-                    navigator.clipboard.writeText(JSON.stringify(sudoku.board));
-                    break;
-                    
-                  case "]":
-                    navigator.clipboard.readText()
-                    .then((text) => {
-                      console.log(text);
-                      sudoku.board = JSON.parse(text) as number[];
-                      set_sudoku({...sudoku});
-                    });
-                    break;
-                }
-              }
-            }}
+            onKeyDown={ui_key_handler}
           >
             {
               //  A sudoku board is represented as a 3x3 board of "big cells" which themselves are a 3x3 board of cells.
@@ -336,7 +342,7 @@ export default function Sudoku() {
             }
           </div>
         </div>
-        <div className="Sudoku-Right-Panel">
+        <div tabIndex={1} className="Sudoku-Right-Panel" onKeyDown={ui_key_handler}>
           <Button 
             disabled={in_manual_mode && manual_error || in_automated_mode}
             onClick={() => {
