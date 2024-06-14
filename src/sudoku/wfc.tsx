@@ -1,4 +1,4 @@
-import { SudokuGame, sudoku_length } from "./logic";
+import { SudokuGame, sudoku_length, sudoku_place_cell } from "./logic";
 
 const ONE = 1;
 const TWO = 2;
@@ -69,7 +69,8 @@ export function sudoku_bitflag_number_possibilities(bitflag: number): number {
         (bitflag >> 4 & 1) +
         (bitflag >> 5 & 1) +
         (bitflag >> 6 & 1) +
-        (bitflag >> 7 & 1)
+        (bitflag >> 7 & 1) +
+        (bitflag >> 8 & 1) 
     )
 }
 
@@ -240,6 +241,8 @@ export function sudoku_possibilities(sudoku: SudokuGame): number[] {
     let attempts = 0;
     let progress_made = true;
 
+    if(!attempts || !progress_made) {}
+
     function recalculate_dictionaries(indices: number[]) {
         cell_to_number = [];
         number_to_cell = [];
@@ -392,9 +395,6 @@ export function sudoku_possibilities(sudoku: SudokuGame): number[] {
     //  Look at all big cells
     for(let i = 0; i < 9; i+=3) {
         for(let j = 0; j < 9; j+=3) {
-            //  The cell value in the board
-            const number = sudoku.board[i];
-
             const big_cell_indices = get_big_cell_indices(i, j);
             recalculate_dictionaries(big_cell_indices);
             apply_informal_rule_1(sorted_cell_to_number, big_cell_indices);
@@ -405,9 +405,6 @@ export function sudoku_possibilities(sudoku: SudokuGame): number[] {
 
     //  Look at all rows
     for(let i = 0; i < 9; i++) {
-        //  The cell value in the board
-        const number = sudoku.board[i];
-
         const row_indices = get_row_indices(i);
         recalculate_dictionaries(row_indices);
         apply_informal_rule_1(sorted_cell_to_number, row_indices);
@@ -417,213 +414,55 @@ export function sudoku_possibilities(sudoku: SudokuGame): number[] {
 
     //  Look at all cols
     for(let i = 0; i < 9; i++) {
-        //  The cell value in the board
-        const number = sudoku.board[i];
-
         const col_indices = get_col_indices(i);
         recalculate_dictionaries(col_indices);
-        console.log(i, "before");
-        console.log(sorted_cell_to_number)
-        console.log(sorted_number_to_cell)
         apply_informal_rule_1(sorted_cell_to_number, col_indices);
         recalculate_dictionaries(col_indices);
         apply_informal_rule_2(sorted_number_to_cell, col_indices);
-        console.log("after")
-        
-        console.log(sorted_cell_to_number)
-        console.log(sorted_number_to_cell)
     }
 
-
-    // for(let i = 0; i < sudoku_length; i++) {
-    //     //  The cell value in the board
-    //     const number = sudoku.board[i];
-
-    //     //  This time we want to look at only empty cells
-    //     if(number != 0)
-    //         continue;
-        
-    //     const {row_indices, col_indices, big_cell_indices} = get_indices(i);
-
-    //     //  Informal rule 1:
-    //     //  If X numbers are all the only options in X cells, then:
-    //     //      1. They are the only options in those cells.
-    //     //      2. They are not options in the other cells.
-    //     //  1 is true due to the premise and 2 is true due to pigeonhole principle.
-
-    //     //  Informal rule 2:
-    //     //  If X numbers are all options only in X cells, then:
-    //     //      1. They are the only options in those cells.
-    //     //      2. They are not options in the other cells.
-    //     //  2 is true due to the premise and 1 is true due to pigeonhole principle.
-
-    //     //  Mapping possible cell values to what cell they can be in 
-    //     let number_to_cell: Record<number, number[]> = {};
-    //     //  Mapping the cell to what numbers can be in it
-    //     let cell_to_number: Record<number, number[]> = {};
-
-    //     let sorted_number_to_cell: (string | number[])[][] = [];
-    //     let sorted_cell_to_number: (string | number[])[][] = [];
-
-    //     //  Informal rule 1
-    //     let attempts = 0;
-    //     let progress_made = true;
-
-    //     function recalculate_dictionaries(indices: number[]) {
-    //         cell_to_number = [];
-    //         number_to_cell = [];
-            
-    //         for(let j = 0; j < indices.length; j++)
-    //         {
-    //             const cell_possibilities = possibilites[indices[j]];
-    //             //  Occupied cell
-    //             if(cell_possibilities < 0) {
-    //                 continue;
-    //             }
-    //             for(let k = 0; k < 9; k++) {
-    //                 if(((cell_possibilities >> k) & 1) == 1) {
-    //                     if(k + 1 in number_to_cell)
-    //                         number_to_cell[k + 1].push(indices[j]);
-    //                     else
-    //                         number_to_cell[k + 1] = [indices[j]];
-    //                 }
-    //             }
-    //             cell_to_number[indices[j]] = sudoku_parse_bitflag(possibilites[indices[j]]);
-    //         }   
-        
-    //         //  Sort by length and order
-    //         //  https://stackoverflow.com/a/25500462
-    //         sorted_number_to_cell = Object.keys(number_to_cell).map(function(key) {
-    //             return [key, number_to_cell[Number(key)]];
-    //         });
-    //         sorted_number_to_cell.sort(function(first, second) {
-    //             return 10 * (first[1].length - second[1].length) + (first[1] < second[1] ? -1: 1);
-    //         });
-    //         sorted_cell_to_number = Object.keys(cell_to_number).map(function(key) {
-    //             return [key, cell_to_number[Number(key)]];
-    //         });
-    //         sorted_cell_to_number.sort(function(first, second) {
-    //             return 10 * (first[1].length - second[1].length) + (first[1] < second[1] ? -1: 1);
-    //         });
-    //     }
-
-    //     function apply_informal_rule_1(sorted_cell_to_number: (string | number[])[][], indices: number[]) {
-    //         let X = 0;
-    //         let length = sorted_cell_to_number[0][1].length;
-    //         let X_cells: number[] = [];
-    //         let options: number[] = sorted_cell_to_number[0][1] as number[];
-
-    //         for(let j = 0; j < sorted_cell_to_number.length; j++) {
-    //             let cell = sorted_cell_to_number[j][0];
-    //             let numbers = sorted_cell_to_number[j][1];
-    
-    //             if(numbers.length == length) {
-    //                 X++;
-    //                 X_cells.push(Number(cell));
-    //             }
-    
-    //             //  Either this is the end or the next element does not match because
-    //             //  it is not the same length or it has different options
-    //             if(j + 1 == sorted_cell_to_number.length || (
-    //                 sorted_cell_to_number[j + 1][1].length != length ||
-    //                 sorted_cell_to_number[j + 1][1].toString() != options.toString()
-    //                 )
-    //             ) {
-    //                 //  Fulfill informal rule 1
-    //                 if(length == X) {
-    //                     const bitflag = possibilities_to_bitflag(numbers as number[]);
-    //                     for(let k = 0; k < indices.length; k++) {
-    //                         let pre_possibilities = possibilites[indices[k]];
-
-    //                         //   1. They are the only options in those cells.
-    //                         if(X_cells.includes(indices[k])) {
-    //                             possibilites[indices[k]] = bitflag;
-    //                         }
-    //                         //  2. They are not options in the other cells.
-    //                         else {
-    //                             possibilites[indices[k]] &= ~bitflag; 
-    //                         }
-
-    //                         if(pre_possibilities != possibilites[indices[k]])
-    //                             progress_made = true;
-    //                     }
-    //                 }
-                    
-    //                 //  Reset variables
-    //                 X = 0;
-    //                 X_cells = [];
-    //                 if(j + 1 < sorted_cell_to_number.length) {
-    //                     length = sorted_cell_to_number[j + 1][1].length;
-    //                     options = sorted_cell_to_number[j + 1][1] as number[];
-    //                 }
-    //             }
-    //         }    
-    //     }
-    //     function apply_informal_rule_2(sorted_number_to_cell: (string | number[])[][], indices: number[]) {
-    //         let X = 0;
-    //         let length = sorted_number_to_cell[0][1].length;
-    //         let X_numbers: number[] = [];
-    //         let options: number[] = sorted_number_to_cell[0][1] as number[];
-
-    //         for(let j = 0; j < sorted_number_to_cell.length; j++) {
-    //             let number = sorted_number_to_cell[j][0];
-    //             let cells = sorted_number_to_cell[j][1];
-    
-    //             if(cells.length == length) {
-    //                 X++;
-    //                 X_numbers.push(Number(number));
-    //             }
-    
-    //             //  Either this is the end or the next element does not match because
-    //             //  it is not the same length or it has different options
-    //             if(j + 1 == sorted_number_to_cell.length || (
-    //                 sorted_number_to_cell[j + 1][1].length != length ||
-    //                 sorted_number_to_cell[j + 1][1].toString() != options.toString()
-    //                 )
-    //             ) {
-    //                 //  Fulfill informal rule 1
-    //                 if(length == X) {
-    //                     const bitflag = possibilities_to_bitflag(X_numbers as number[]);
-    //                     for(let k = 0; k < indices.length; k++) {
-    //                         let pre_possibilities = possibilites[indices[k]];
-
-    //                         //   1. They are the only options in those cells.
-    //                         if(options.includes(indices[k])) {
-    //                             possibilites[indices[k]] = bitflag;
-    //                         }
-    //                         //  2. They are not options in the other cells.
-    //                         else {
-    //                             possibilites[indices[k]] &= ~bitflag; 
-    //                         }
-
-    //                         if(pre_possibilities != possibilites[indices[k]])
-    //                             progress_made = true;
-    //                     }
-    //                 }
-                    
-    //                 //  Reset variables
-    //                 X = 0;
-    //                 X_numbers = [];
-    //                 if(j + 1 < sorted_number_to_cell.length) {
-    //                     length = sorted_number_to_cell[j + 1][1].length;
-    //                     options = sorted_number_to_cell[j + 1][1] as number[];
-    //                 }
-    //             }
-    //         }
-    //     }
-
-    //     while(progress_made && attempts < 10) {
-    //         progress_made = false;
-    //         attempts++;
-            
-    //         recalculate_dictionaries(big_cell_indices);
-    //         apply_informal_rule_1(sorted_cell_to_number, big_cell_indices);
-
-    //         // recalculate_dictionaries(big_cell_indices);
-    //         // apply_informal_rule_2(sorted_cell_to_number, big_cell_indices);
-           
-    //     }
-    // }
-    
     return possibilites;
+}
+
+/**
+ * Collapses the state of the board by picking the most likely option. Returns false if there are no more moves available.
+ * @param sudoku 
+ * @returns 
+ */
+export function sudoku_collapse(sudoku: SudokuGame): boolean {
+    let possibilies_list = sudoku_possibilities(sudoku);
+
+    //  For conciseness, the index is interleaved with the possibility bitflags
+    //  Example:
+    //  0 - index
+    //  1 - bitflag
+    //  2 - index
+    //  3 - bitflag
+    let options: number[] = [];
+    let min = 10;
+    for(let i = 0; i < possibilies_list.length; i++) {
+        //  ignore occupied cells
+        if(sudoku.board[i] != 0)
+            continue;
+        
+        const num_possibilities: number = sudoku_bitflag_number_possibilities(possibilies_list[i]);
+        if(num_possibilities < min) {
+            options = [];
+            min = num_possibilities;
+        }
+        if(num_possibilities == min) {
+            options.push(i);
+            options.push(possibilies_list[i]);
+        }
+    }
+    if(min == 0)
+        return false;
+    //  Pick random option available
+    const chosen_option = 2 * Math.floor(Math.random() * Math.floor(options.length / 2));
+    const random_possibilities = sudoku_parse_bitflag(options[chosen_option + 1]);
+
+    return sudoku_place_cell(sudoku, 
+        options[chosen_option], //  first in interleaved array is the index 
+        random_possibilities[Math.floor(Math.random() * random_possibilities.length)]  //  second is the bitflag
+    );
 }

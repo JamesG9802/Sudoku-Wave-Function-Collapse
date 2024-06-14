@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import './App.css';
 import Sudoku from './sudoku';
+import { CssBaseline } from '@mui/material';
 
 function App() {
   function set_dark_mode(is_dark_mode: boolean) {
@@ -36,6 +37,7 @@ function App() {
 
   return (
     <>
+      <CssBaseline/>
       <div className="App">
         <Sudoku/>
       </div>

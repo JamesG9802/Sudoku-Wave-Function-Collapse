@@ -1,50 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
 
 :root {
-  /*  Light Theme */
-  --page-bg-color-light: #f3f2ff;
-  --page-bg-card-color-light: #dddcee;
-  --text-color-light: #211d1a;
-  --text-secondary-color-light: #776a61;
-  --accent-color-light: #6F7AF3;
-  --solving-color-light: #db5344;
-  --editing-color-light: #47bd70;
-  /*  Dark Theme */
-  --page-bg-color-dark: #2a231e;
-  --page-bg-card-color-dark: rgb(98, 82, 70);
-  --text-color-dark: #dfddf6;
-  --accent-color-dark: #747cda;
-  --solving-color-dark: #b8422a;
-  --editing-color-dark: #228545;
-
-  /*  Theme agnostic variables  */
   --text-standard-font-family: 'Open Sans', sans-serif;
   --text-small-font-size: 1rem;
   --text-standard-font-size: 1.25rem;
   --text-large-font-size: 1.75rem;
   --text-larger-font-size: 2.25rem;
-
-  /*  Variables to be accessed by other styles (default light)  */
-  --page-bg-color: var(--page-bg-color-light);
-  --page-bg-card-color: var(--page-bg-card-color-light);
-  --text-color: var(--text-color-light);
-  --text-secondary-color: var(--text-secondary-color-light);
-  --accent-color: var(--accent-color-light);
-  --solving-color: var(--solving-color-light);
-  --editing-color: var(--editing-color-light);
 }
 
 body {
   margin: 0px;
   padding: 0px;
   min-height: 100vh;
-  background-color: var(--page-bg-color);
 }
 
 .App {
   min-height: 100vh;
   text-align: center;
-  color: var(--text-color);
   font-size: var(--text-standard-font-size);
   font-family: var(--text-standard-font-family);
 }
@@ -62,10 +34,4 @@ body {
   gap: 20px;
   justify-content: center;
   align-items: center;
-}
-.accent {
-  color: var(--accent-color);
-}
-.strong {
-  font-weight: bold;
 }

@@ -3,16 +3,21 @@
   flex-direction: row;
   gap: 20px;
   justify-content: center;
-  align-items: center;
+  align-items: start;
+}
+.Sudoku-Title {
+    margin: 1rem;
+    font-size: larger;
 }
 
-@media only screen and (max-width: 480px) {
+@media only screen and (max-width: 620px) {
     /*  Increasing specificity. */
     body .Sudoku {
         flex-direction: column;
+        align-items: center;
     }
     body .Sudoku-Cell {
-        min-width: 2rem;
+        min-width: 2.5rem;
         font-size: var(--text-standard-font-size);
     }
     body .Number-UI-Container {
@@ -24,20 +29,21 @@
         justify-content: center;
         align-items: center;
     }
-    body .Number-UI {
-        font-size: var(--text-large-font-size);
-    }
-    .Sudoku-Controls > div > span {
+    body .Sudoku-Button-Text {
         display: none;
     }
     body .Sudoku-Right-Panel-Mode {
         max-width: 100%;
     }
+    body .Sudoku-Cell-Options {
+        font-size: 10px;
+    }
 }
-@media only screen and (max-width: 840px) and (min-width: 480px) {
+@media only screen and (max-width: 1000px) and (min-width: 620px) {
     /*  Increasing specificity. */
     body .Sudoku {
         flex-direction: column;
+        align-items: center;
     }
     body .Sudoku-Cell {
         min-width: 3rem;
@@ -51,11 +57,12 @@
 
         justify-content: center;
         align-items: center;
+
+        gap: 4px;
     }
-    .Sudoku-Controls > div > span {
+    body .Sudoku-Button-Text {
         display: none;
     }
-    
     body .Sudoku-Right-Panel-Mode {
         max-width: 100%;
     }
@@ -65,9 +72,6 @@
 */
 .Sudoku-Board {
     display: grid;
-    
-    background-color: var(--text-color);
-    border: 1px solid var(--text-color);
 
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(3, 1fr);
@@ -79,9 +83,6 @@
 
 .Sudoku-Big-Cell {
     display: grid;
-    
-    background-color: var(--text-color);
-    border: 1px solid var(--text-color);
 
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(3, 1fr);
@@ -91,8 +92,6 @@
 .Sudoku-Cell {
     display: flex;
     flex-direction: column;
-
-    background-color: var(--page-bg-card-color);
 
     font-size: var(--text-larger-font-size);
     
@@ -111,31 +110,6 @@
     display: inline-flex;
     margin: 0px;
     text-align: center;
-}
-
-.Sudoku-Cell-Normal:hover {
-    filter: brightness(85%);
-}
-.Sudoku-Cell-Normal:active {
-    filter: brightness(75%);
-}
-
-.Sudoku-Cell-Selected {
-    color: var(--text-color-highlight);
-    background-color: var(--accent-color);
-    opacity: 1;
-}
-
-.Sudoku-Cell-Indicator {
-    background-color: var(--accent-color);
-    opacity: .8;
-}
-.Sudoku-Cell-Indicator:hover {
-    filter: brightness(85%);
-}
-
-.Sudoku-Empty {
-    color: rgb(0, 0, 0, 0) !important;
 }
 
 .Sudoku-Right-Panel {
@@ -163,39 +137,6 @@
     flex-direction: row;
     justify-content: space-evenly;
 }
-.Sudoku-Controls > div {
-    display: flex;
-
-    flex-direction: column;
-
-    user-select: none;
-}
-.Sudoku-Controls > div > span {
-    font-size: var(--text-small-font-size);
-}
-
-.Sudoku-Controls-Icon {
-    display: flex;
-
-    justify-content: center;
-    align-items: center;
-
-    background-color: var(--page-bg-card-color);
-
-    aspect-ratio: 1;
-    border-radius: 9999px;
-    padding: 8px;
-
-    cursor: pointer;
-
-    transition: all ease-in-out .1s;
-}
-.Sudoku-Controls-Icon:hover {
-    filter: brightness(85%);
-}
-.Sudoku-Controls-Icon:active {
-    filter: brightness(75%);
-}
 
 .Number-UI-Container {
     display: grid;
@@ -205,57 +146,115 @@
     gap: 8px;
 }
 
-.Number-UI {
-    display: flex;
-    flex-direction: column;
-
-    background-color: var(--page-bg-card-color); 
-    
-    border-radius: .5rem;
-    
-    color: var(--accent-color);
-    font-size: var(--text-larger-font-size);
-
-    aspect-ratio: 1;
-    min-width: 4rem;
-
-    justify-content: center;
-    align-items: center;
-
-    user-select: none;
-    cursor: pointer;
-
-    transition: all ease-in-out .1s;
+.Animated-Gear {
+    animation-name: rotate;
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
 }
-.Number-UI:hover {
-    filter: brightness(85%);
-}
-.Number-UI:active {
-    filter: brightness(75%);
-}
-.Number-UI > p {
-    display: inline-flex;
-    margin: 1rem;
-    text-align: center;
 
+.Animated-Pause {
+    animation-play-state: paused;
+}
+
+@keyframes rotate{
+    0% {
+        rotate: 0deg;
+    }
+    25% {
+        rotate: 90deg;
+    }
+    50% {
+        rotate: 180deg;
+    }
+    75% {
+        rotate: 270deg;
+    }
+    100% {
+        rotate: 360deg;
+    }
+
+}
+
+.Sudoku-Cell-Solve-Changed {
+    animation-name: NormalToBigToNormal;
+    animation-duration: 1s;
+    animation-iteration-count: 1;
+    animation-timing-function: default;
+
+    transition: .3s;
+}
+@keyframes NormalToBigToNormal{
+    0% {
+        scale: 100%;
+    }
+    50% {
+        scale: 150%;
+    }
+    75% {
+        scale: 110%;
+    }
+    100% {
+        scale: 100%;
+    }
+}
+
+.Sudoku-Cell-Invalid {
+    transition-duration: .3s;
+}
+.Sudoku-Cell-Invalid::after {
+    position: absolute;
+    content: "!";
+    transform : translate(0, -25%);
+    font-size: 128px;
     font-weight: bold;
+
+    animation-name: exclamationfade;
+    animation-duration: .65s;
+    animation-iteration-count: 1;
+    animation-timing-function: default;
+    animation-fill-mode: forwards;
+}
+@keyframes exclamationfade{
+    0% { 
+        transform: translate(0, -25%);
+        opacity: 100%;
+    }
+    50% {
+        transform: translate(0%, -50%);
+        opacity: 100%;
+    }
+    /* 75% {
+        transform: translate(15%, -25%);
+        opacity: 90%;
+    } */
+    100% {
+        transform: translate(0%, 0%);
+        opacity: 0%;
+    }
+}
+.Sudoku-Cell-Solved {
+    transition-duration: .3s;
+}
+.Sudoku-Cell-Most-Likely {
+    animation-name: idleGrow;
+    animation-duration: 1.5s;
+    animation-iteration-count: infinite;
+    animation-timing-function: ease-in-out;
+    animation-fill-mode: forwards;
+}
+@keyframes idleGrow {
+    0% { 
+        scale: 100%;
+    }
+    50% {
+        scale: 75%;
+    }
+    100% {
+        scale: 100%;
+    }
 }
 
-.Solving {
-    color: var(--solving-color);
-}
-.Editing {
-    color: var(--editing-color);
-}
-
-.Solving-Ignore {
-    background-color: red;
-}
-
-.Solving-Possible {
-    background-color: var(--text-secondary-color);
-}
-
-.Solving-Done {
-    cursor: default;
+.Sudoku-Cell-Options {
+    font-size: 12px;
 }
