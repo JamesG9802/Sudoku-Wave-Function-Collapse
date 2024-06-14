@@ -22,22 +22,26 @@ export let debug = false;
  *      +   Added:      Button to load new sudoku (not fully working)
  *      +   Added:      Updated UI for selecting and choosing options
  *      +   Added:      Button to fully solve without human input (not fully working)
- *      +   Expected:   Add description
+ * v2.2
+ *      +   Finished:   Button to load new sudoku (not fully working)
+ *      +   Finished:   Button to fully solve without human input
+ *      +   Added:      Add description
+ * v2.3
  *      +   Expected:   Button to load puzzle from image
  */
 
 const dark_palette: PaletteOptions = {
     mode: "dark",
     primary: {
-        main: "#69bfff",
+        main: "#66a0cc",
     },
     secondary: {
-        main: "#e6b189",
+        main: "#c49b7c",
     },
     background: {
         default: "#2a231e",
         paper: "#3d3128"
-    },
+    }
 }
 const light_palette: PaletteOptions = {
     mode: "light",

@@ -1,4 +1,4 @@
-import { SudokuGame, sudoku_length, sudoku_place_cell } from "./logic";
+import { SudokuGame, SudokuMove, sudoku_is_solved, sudoku_length, sudoku_move_array_is_subset, sudoku_move_copy, sudoku_move_equals, sudoku_place_cell, sudoku_undo } from "./logic";
 
 const ONE = 1;
 const TWO = 2;
@@ -9,6 +9,49 @@ const SIX = 32;
 const SEVEN = 64;
 const EIGHT = 128;
 const NINE = 256;
+
+/**
+ * The possible states of the solver
+ */
+export enum SolverState {
+    /**
+     * In the process of reducing the possibility space
+     */
+    COLLAPSING,
+
+    /**
+     * In the process of undoing bad decisions.
+     */
+    BACKTRACKING,
+
+    /**
+     * Has finished solving the sudoku
+     */
+    SOLVED,
+
+    /**
+     * The sudoku puzzle is impossible
+     */
+    BROKEN
+}
+
+export type SudokuSolver = {
+    /**
+     * The solver's current state
+     */
+    state: SolverState;
+
+    /**
+     * The list of MEANINGFUL decisions the solver has had to make.
+     * A meaningful decision is a move where the solver had several different options to make.
+     */
+    decisions: SudokuMove[];
+
+    /**
+     * The list of MEANINGFUL decision chains that led to a unsolvable board. 
+     */
+    bad_decisions: SudokuMove[][];
+};
 
 /**
  * Returns the bitflag for sudoku's cell value.
@@ -178,7 +221,7 @@ function get_indices(cell_index: number): {
  * 9 = 0b100000000
  * @param sudoku 
  */
-export function sudoku_possibilities(sudoku: SudokuGame): number[] {
+export function sudoku_possibilities(sudoku: SudokuGame, bad_decisions?: SudokuMove[]): number[] {
     let possibilites: number[] = [];
     for(let i = 0; i < sudoku_length; i++) {
         //  Only empty cells can have possible moves.
@@ -421,16 +464,42 @@ export function sudoku_possibilities(sudoku: SudokuGame): number[] {
         apply_informal_rule_2(sorted_number_to_cell, col_indices);
     }
 
+    //  Finally, apply the black list of bad decisions
+    if(bad_decisions) {
+        for(let i = 0; i < bad_decisions.length; i++) {
+            const bad_move: SudokuMove = bad_decisions[i];
+            possibilites[bad_move.index] &= ~number_to_bitflag(bad_move.value);
+        }
+    }
+
     return possibilites;
+}
+
+export function sudoku_solver_new(): SudokuSolver {
+    return {
+        state: SolverState.COLLAPSING,
+        decisions: [],
+        bad_decisions: [],
+    }
 }
 
 /**
  * Collapses the state of the board by picking the most likely option. Returns false if there are no more moves available.
- * @param sudoku 
+ * @param sudoku the sudoku game
+ * @param bad_decisions the list of bad decisions
  * @returns 
  */
-export function sudoku_collapse(sudoku: SudokuGame): boolean {
-    let possibilies_list = sudoku_possibilities(sudoku);
+export function sudoku_collapse(sudoku: SudokuGame, bad_decisions?: SudokuMove[]): {
+    /**
+     * True if collapsing required making a random decision
+     */
+    made_decision: boolean,
+    /**
+     * True if a move was successfully made
+     */
+    made_move: boolean
+} {
+    let possibilies_list = sudoku_possibilities(sudoku, bad_decisions);
 
     //  For conciseness, the index is interleaved with the possibility bitflags
     //  Example:
@@ -456,13 +525,131 @@ export function sudoku_collapse(sudoku: SudokuGame): boolean {
         }
     }
     if(min == 0)
-        return false;
+        return {
+            made_decision: false,
+            made_move: false
+        };
     //  Pick random option available
     const chosen_option = 2 * Math.floor(Math.random() * Math.floor(options.length / 2));
     const random_possibilities = sudoku_parse_bitflag(options[chosen_option + 1]);
+    return {
+            made_decision: random_possibilities.length > 1,
+            made_move: sudoku_place_cell(sudoku, 
+                options[chosen_option], //  first in interleaved array is the index 
+                random_possibilities[Math.floor(Math.random() * random_possibilities.length)]  //  second is the bitflag
+            )
+    };
+}
 
-    return sudoku_place_cell(sudoku, 
-        options[chosen_option], //  first in interleaved array is the index 
-        random_possibilities[Math.floor(Math.random() * random_possibilities.length)]  //  second is the bitflag
-    );
+/**
+ * Make an iteration towards solving the sudoku puzzle.
+ * Returns true if the puzzle is solved.
+ * @param sudoku 
+ */
+export function sudoku_solve(sudoku: SudokuGame, solver: SudokuSolver): boolean {
+    switch(solver.state) {
+        case SolverState.COLLAPSING:
+            //  Given the current decision chain, create a blacklist based on the bad moves made
+            const bad_decisions: SudokuMove[] = [];
+            for(let i = 0; i < solver.bad_decisions.length; i++) {
+                //  Blacklist only works if it affects the next decision
+                if(solver.bad_decisions[i].length != solver.decisions.length + 1)
+                    continue;
+
+                //  Check if the decision chain is the same, up to the last decision
+                let is_same = true;
+                for(let j = 0; j < solver.decisions.length; j++) {
+                    if(!sudoku_move_equals(solver.decisions[j], solver.bad_decisions[i][j])) {
+                        is_same = false;
+                        break;
+                    }
+                }
+                if(is_same)
+                    bad_decisions.push(solver.bad_decisions[i][solver.decisions.length]);
+            }
+            //  Try to collapse
+            const {made_decision, made_move} = sudoku_collapse(sudoku, bad_decisions);
+            
+            //  If collapsing was successful, check if a decision was made and stop
+            if(made_move) {
+                if(made_decision)
+                    solver.decisions.push(sudoku_move_copy(sudoku.history[sudoku.history.length - 1]));
+                break;
+            }
+            //  If unsuccessful, check if it is solved.
+            //  Otherwise change to backtracking and add it to the list of bad decisions.
+            else {
+                if(sudoku_is_solved(sudoku)) {
+                    solver.state = SolverState.SOLVED;
+                    break;
+                }
+                //  This should be impossible
+                if(made_decision)
+                    console.error("During solving, somehow a decision was made with no valid moves.");
+                solver.state = SolverState.BACKTRACKING;
+                solver.bad_decisions.push(JSON.parse(JSON.stringify(solver.decisions)));
+
+                //  if a bad decision is a subset of another one, you can delete the superset
+                for(let i = 0; i < solver.bad_decisions.length; i++) {
+                    for(let j = i + 1; j < solver.bad_decisions.length; j++) {
+                        if(sudoku_move_array_is_subset(solver.bad_decisions[i], solver.bad_decisions[j])) {
+                            solver.bad_decisions.splice(j, 1);
+                            j--;
+                        }
+                    }
+                }
+                
+                break;
+            }
+        case SolverState.BACKTRACKING:
+            //  This technically works
+            //  However, due to how bad decisions affect possibilities 
+            //  (they are removed as options entirely)
+            //  this can lead to a depth-first search which occasionally traps
+            //  the solver in an extremely deep search when the initial guess(es) were wrong
+            //  but it needs to explore all the child options first.
+
+            //  This can be alleviated by just undoing all the way to the beginning.
+            // const last_move = sudoku.history[sudoku.history.length - 1];
+            // const was_decision_move = JSON.stringify(last_move) == JSON.stringify(solver.decisions[solver.decisions.length - 1]);
+            // //  If there is somehow no moves left, then the puzzle was impossible
+            // if(last_move == undefined) {
+            //     solver.state = SolverState.BROKEN;
+            //     break;
+            // }
+
+            // if(was_decision_move) {
+            //     solver.decisions.pop();
+            // }
+
+            // //  Backtrack a step
+            // sudoku_undo(sudoku);
+
+            // //  If the decision chain no longer is bad, switch to collapsing
+            // if(was_decision_move)
+            // {
+            //     let not_bad_match = true;
+
+            //     for(let i = 0; i < solver.bad_decisions.length; i++) {
+            //         if(sudoku_move_array_is_subset(solver.bad_decisions[i], solver.decisions)) {
+            //             not_bad_match = false;
+            //             break;
+            //         }
+            //     }   
+            //     if(not_bad_match)
+            //     {
+            //         solver.state = SolverState.COLLAPSING;
+            //         break;
+            //     }
+            // }
+            // break;
+
+            while(sudoku_undo(sudoku)) {}
+            solver.decisions = [];
+            solver.state = SolverState.COLLAPSING;
+            break;
+        case SolverState.SOLVED:
+            break;
+    }
+    return solver.state == SolverState.SOLVED;
 }

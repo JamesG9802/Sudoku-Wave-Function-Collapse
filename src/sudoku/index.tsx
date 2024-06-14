@@ -4,12 +4,12 @@ import Icon from "@mdi/react";
 
 import "./index.css";
 import { mdiBroom, mdiCog, mdiEraser, mdiUndo, mdiWrenchClock } from "@mdi/js";
-import { SudokuGame, sudoku_delete_cell, sudoku_new, sudoku_place_cell, sudoku_reset, sudoku_set_cell, sudoku_undo } from "./logic";
-import { sudoku_collapse, sudoku_parse_bitflag, sudoku_possibilities } from "./wfc";
+import { SudokuGame, SudokuMove, sudoku_delete_cell, sudoku_looks_solvable, sudoku_move_equals, sudoku_new, sudoku_place_cell, sudoku_reset, sudoku_set_cell, sudoku_undo } from "./logic";
+import { SolverState, SudokuSolver, sudoku_parse_bitflag, sudoku_possibilities, sudoku_solve, sudoku_solver_new } from "./wfc";
 import { Button, Modal, Popover, Slider, Switch, useTheme } from "@mui/material";
 import NumberUI from "./number_ui";
 import BigCell from "./bigcell";
-import { sudoku_board_hardest } from "./boards";
+import { sudoku_board_hardest, sudoku_board_random } from "./boards";
 
 export default function Sudoku() {
   const theme = useTheme();
@@ -17,6 +17,7 @@ export default function Sudoku() {
   const [sudoku, set_sudoku] = useState<SudokuGame>(
     sudoku_new([0, 0, 0, 0, 2, 0, 4, 0, 0, 9, 0, 6, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 6, 0, 0, 0, 0, 0, 0, 7, 5, 4, 3, 8, 0, 0, 0, 0, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, 3, 0, 0, 5, 0, 4, 0, 0, 0, 0, 2, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 5, 0, 7, 0, 0, 0])
   );
+  const solver = useRef<SudokuSolver>(sudoku_solver_new());
 
   const [possibilities, set_possibilities] = useState<number[]>([]);
   const [smallest_probability, set_smallest_probability] = useState(-1);
@@ -25,6 +26,7 @@ export default function Sudoku() {
   const [selected_number, set_selected_number] = useState(0);
 
   const [in_manual_mode, set_in_manual_mode] = useState(true);
+  const [manual_error, set_in_manual_error] = useState(false);
 
   const [in_automated_mode, set_in_automated_mode] = useState(false);
   const is_solving = useRef(false);
@@ -37,10 +39,37 @@ export default function Sudoku() {
   
   const [showing_new_game_modal, set_showing_new_game_modal] = useState(false);
 
+  // useEffect(() => {
+  //   //  test
+  //   let broken_count = 0;
+  //   let solved_count = 0;
+  //   let too_long = 0;
+  //   for(let i = 0; i < 10000; i++) {
+  //     console.log("Iteration", i);
+  //     const test_sudoku = sudoku_new(sudoku_board_hardest());
+  //     const test_solver = sudoku_solver_new();
+
+  //     let solve_iterations = 0;
+  //     while(test_solver.state != SolverState.BROKEN && test_solver.state != SolverState.SOLVED && solve_iterations++ <= 10000) {
+  //       sudoku_solve(test_sudoku, test_solver);
+  //     }
+  //     if(test_solver.state == SolverState.BROKEN)
+  //       broken_count++;
+  //     else if(test_solver.state == SolverState.SOLVED)
+  //       solved_count++;
+  //     else if(solve_iterations > 10000) {
+  //       too_long++;
+  //       console.log(test_solver);
+  //     }
+  //   }
+  //   console.log(broken_count, solved_count, too_long);
+  // }, [])
+
   function ui_set_sudoku(sudoku: SudokuGame, update_possibilities: boolean) {
     if(update_possibilities)
       ui_set_possibilities(sudoku);
     set_sudoku({...sudoku});
+    set_in_manual_error(!sudoku_looks_solvable(sudoku));
     ui_update_selected(selected_row, selected_col);
   }
 
@@ -63,7 +92,11 @@ export default function Sudoku() {
     if(options.length != smallest_probability)
       return;
     const random_option = options[Math.floor(Math.random() * options.length)];
+    
     sudoku_place_cell(sudoku, row * 9 + column, random_option);
+    //  if this was a decision
+    if(options.length > 1)
+      solver.current.decisions.push(sudoku.history[sudoku.history.length - 1]);
     ui_set_sudoku({...sudoku}, true);
   }
 
@@ -74,7 +107,29 @@ export default function Sudoku() {
   }
 
   function ui_set_possibilities(sudoku: SudokuGame) {
-    let new_possibilities: number[] = sudoku_possibilities(sudoku);
+    //  Given the current decision chain, create a blacklist based on the bad moves made
+    const bad_decisions: SudokuMove[] = [];
+    if(is_solving)
+    {
+      for(let i = 0; i < solver.current.bad_decisions.length; i++) {
+          //  Blacklist only works if it affects the next decision
+          if(solver.current.bad_decisions[i].length != solver.current.decisions.length + 1)
+              continue;
+
+          //  Check if the decision chain is the same, up to the last decision
+          let is_same = true;
+          for(let j = 0; j < solver.current.decisions.length; j++) {
+            if(!sudoku_move_equals(solver.current.decisions[j], solver.current.bad_decisions[i][j])) {
+                is_same = false;
+                break;
+            }
+          }
+          if(is_same)
+            bad_decisions.push(solver.current.bad_decisions[i][solver.current.decisions.length]);
+      }
+    }
+
+    let new_possibilities: number[] = sudoku_possibilities(sudoku, bad_decisions);
     set_possibilities(new_possibilities);
 
     let min = Number.MAX_SAFE_INTEGER;
@@ -90,7 +145,6 @@ export default function Sudoku() {
       }
     }
     set_smallest_probability(min);
-    console.log(new_possibilities);
   }
 
   /**
@@ -145,8 +199,11 @@ export default function Sudoku() {
     let target_mode = !in_manual_mode;
     set_in_manual_mode(target_mode);
 
-    if(!target_mode)
+    if(!target_mode) {
+      sudoku.history = [];
+      solver.current = solver.current = sudoku_solver_new();
       ui_set_possibilities(sudoku);
+    }
   }
 
   /**
@@ -159,6 +216,19 @@ export default function Sudoku() {
 
     if(sudoku.history.length == 0)
       return;
+
+    if(!in_manual_mode && solver.current.decisions.length != 0) {
+      const last_move = sudoku.history[sudoku.history.length - 1];
+      const was_decision_move = sudoku_move_equals(
+        last_move, 
+        solver.current.decisions[solver.current.decisions.length - 1]
+      );
+      if(was_decision_move) {
+        solver.current.decisions.pop();
+      }   
+    }
+    if(solver.current.state == SolverState.SOLVED)
+      solver.current.state = SolverState.COLLAPSING;
     ui_update_selected(
       Math.floor(sudoku.history[sudoku.history.length - 1].index / 9),
       sudoku.history[sudoku.history.length - 1].index % 9
@@ -184,7 +254,7 @@ export default function Sudoku() {
           flexDirection: "column",
         }}>
           <p className="Sudoku-Title">
-            Sudoku Wave Function Collapse Solver
+            Sudoku Wave Function Collapse Visualization
           </p>
           <div
             tabIndex={0}
@@ -210,7 +280,6 @@ export default function Sudoku() {
                 ui_set_sudoku_value(selected_row * 9 + selected_col, number);
               } 
               else {
-                console.log(event.key)
                 switch(event.key) {
                   default: 
                     break;
@@ -247,10 +316,6 @@ export default function Sudoku() {
                       set_sudoku({...sudoku});
                     });
                     break;
-                  case "Enter":
-                    sudoku_collapse(sudoku);
-                    set_sudoku({...sudoku});
-                    ui_set_sudoku(sudoku, false)
                 }
               }
             }}
@@ -273,6 +338,7 @@ export default function Sudoku() {
         </div>
         <div className="Sudoku-Right-Panel">
           <Button 
+            disabled={in_manual_mode && manual_error || in_automated_mode}
             onClick={() => {
               ui_switch_mode();
             }}
@@ -291,6 +357,7 @@ export default function Sudoku() {
             <div style={{display: "flex", flexDirection: "row"}}>
               <span>Editing Mode</span>
               <Switch 
+                disabled={in_manual_mode && manual_error}
                 checked={!in_manual_mode} 
                 onChange={() => { 
                   ui_switch_mode();
@@ -299,6 +366,12 @@ export default function Sudoku() {
               />
               <span>Solving Mode</span>
             </div>
+            {
+              in_manual_mode && manual_error &&
+              <p style={{color: theme.palette.error.main}}>
+                The sudoku board looks wrong.
+              </p>
+            }
           </Button>
           <div className="Sudoku-Controls">
             <Button 
@@ -356,7 +429,8 @@ export default function Sudoku() {
                 function solve() {
                   if(!is_solving.current)
                     return;
-                  if(sudoku_collapse(sudoku)) {
+                  //  If it is not solved yet, solve it again
+                  if(!sudoku_solve(sudoku, solver.current)) {
                     ui_set_sudoku(sudoku, true);
                     setTimeout(() => {solve()}, solve_speed.current);
                   }
@@ -390,14 +464,14 @@ export default function Sudoku() {
                 className={`Animated-Gear  +
                   ${in_manual_mode || !in_automated_mode ? "Animated-Pause" : ""} 
                 `}
-                size={1.5} />
+                size={1.5}
+              />
               <span className="Sudoku-Button-Text">Auto Solve</span>
             </Button>
             <Button 
               disabled={in_manual_mode}
               variant="text"
               onClick={(event) => {
-                console.log(event.currentTarget)
                 set_speed_popover_anchor(event.currentTarget);
               }}
               sx={{
@@ -458,10 +532,9 @@ export default function Sudoku() {
 
                         //  The ui scale is flipped so need to flip it internally
                         solve_speed.current = 100 - value;
-                        //  Next we transform the scale from [0,100] to [100, 2000]
+                        //  Next we transform the scale from [0,100] to [10, 2000]
                         solve_speed.current = 
-                          (solve_speed.current) / 100 * (1900) + 100;
-                        console.log(solve_speed)
+                          (solve_speed.current) / 100 * (2000 - 10) + 10;
                       }
                     }}
                     disabled={in_manual_mode}
@@ -483,6 +556,7 @@ export default function Sudoku() {
           </div>
           <div className="Sudoku-Controls">
             <Button variant="contained" size="large" 
+              disabled={in_automated_mode}
               sx={{
                 fontSize: "1.0rem",
                 fontWeight: "bold",
@@ -526,26 +600,13 @@ export default function Sudoku() {
                   display: "flex",
                   justifyContent: "start"
                 }}
+                onClick={(() => {
+                  ui_set_sudoku(sudoku_new(sudoku_board_random()), true)
+                  solver.current = sudoku_solver_new();
+                  set_showing_new_game_modal(false);
+                })}
               >
-                Easy
-              </Button>
-              <Button 
-                variant="contained"  
-                sx={{
-                  display: "flex",
-                  justifyContent: "start"
-                }}
-              >
-                Medium
-                </Button>
-                <Button 
-                variant="contained"  
-                sx={{
-                  display: "flex",
-                  justifyContent: "start"
-                }}
-              >
-                Hard
+                Random
               </Button>
               <Button 
                 variant="contained"  
@@ -556,6 +617,7 @@ export default function Sudoku() {
                 }}
                 onClick={() => {
                   ui_set_sudoku(sudoku_new(sudoku_board_hardest()), true)
+                  solver.current = sudoku_solver_new();
                   set_showing_new_game_modal(false);
                 }}
               >

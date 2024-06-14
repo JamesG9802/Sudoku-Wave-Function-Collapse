@@ -93,6 +93,50 @@ export function sudoku_make_move(sudoku: SudokuGame, move: SudokuMove) {
 }
 
 /**
+ * Returns a deep copy of a sudoku move.
+ * @param move 
+ */
+export function sudoku_move_copy(move: SudokuMove): SudokuMove {
+    return {
+        index: move.index,
+        type: move.type,
+        value: move.value,
+        last_value: move.last_value
+    }
+}
+
+/**
+ * Returns true if move1 is equal to move2.
+ * @param move1 
+ * @param move2 
+ */
+export function sudoku_move_equals(move1: SudokuMove, move2: SudokuMove): boolean {
+    return move1.index == move2.index &&
+        move1.type == move2.type &&
+        move1.value == move2.value &&
+        move1.last_value == move2.last_value
+}
+
+/**
+ * Returns true if moves1 is a subset of moves2.
+ * @param moves1 
+ * @param moves2 
+ */
+export function sudoku_move_array_is_subset(moves1: SudokuMove[], moves2: SudokuMove[]): boolean {
+    let is_subset = true;
+    if(moves1.length > moves2.length)
+        return false;
+    for(let i = 0; i < moves1.length; i++) {
+        if(!sudoku_move_equals(moves1[i], moves2[i]))
+        {
+            is_subset = false;
+            break;
+        }
+    }
+    return is_subset;
+}
+
+/**
  * Undos the last move on the sudoku board.
  * @param sudoku the game to be changed.
  * @returns 
@@ -206,4 +250,105 @@ export function sudoku_reset(sudoku: SudokuGame) {
         sudoku.board[i] = 0;
     }
     sudoku.history = [];
+}
+
+/**
+ * Returns true if the sudoku game looks possible to solve
+ * @param sudoku 
+ */
+export function sudoku_looks_solvable(sudoku: SudokuGame): boolean {
+    //  Each row cannot have the same number
+    let numbers: Set<Number> = new Set<Number>(); 
+    for(let row = 0; row < 9; row++, numbers.clear()) {
+        for(let col = 0; col < 9; col++) {
+            const number = sudoku.board[row * 9 + col];
+            if(number == 0)
+                continue;
+            if(!numbers.has(number) && number >= 1 && number <= 9)
+                numbers.add(number);
+            else {
+                return false;
+            }
+        }
+    }
+    //  Each column must have [1,2,3,4,5,6,7,8,9]
+    for(let col = 0; col < 9; col++, numbers.clear()) {
+        for(let row = 0; row < 9; row++) {
+            const number = sudoku.board[row * 9 + col];
+            if(number == 0)
+                continue;
+            if(!numbers.has(number) && number >= 1 && number <= 9)
+                numbers.add(number);
+            else {
+                return false;
+            }
+        }
+    }
+    //  Each big cell must contain [1,2,3,4,5,6,7,8,9]
+    for(let big_cell_index = 0; big_cell_index < 9; big_cell_index++, numbers.clear()) {
+        const row = big_cell_index - big_cell_index % 3;
+        const col = (big_cell_index % 3) * 3;
+        for(let r = 0; r < 3; r++) {
+            for(let c = 0; c < 3; c++) {
+                const number = sudoku.board[(row + r) * 9 + (col + c)];
+                if(number == 0)
+                    continue;
+                if(!numbers.has(number))
+                    numbers.add(number);
+                else
+                {
+                    return false;
+                }    
+            }
+        }
+    }
+    return true;
+}
+
+/**
+ * Returns true if the sudoku game is solved
+ * @param sudoku the sudoku game.
+ */
+export function sudoku_is_solved(sudoku: SudokuGame): boolean {
+    //  Each row must add up to 45
+    let sum = 0;
+    for(let row = 0; row < 9; row++, sum = 0) {
+        for(let col = 0; col < 9; col++) {
+            const number = sudoku.board[row * 9 + col];
+            if(number >= 1 && number <= 9)
+                sum += number;
+        }
+        if(sum != 45) {
+            return false;
+        }
+    }
+    //  Each column must add up to 45
+    for(let col = 0; col < 9; col++, sum = 0) {
+        for(let row = 0; row < 9; row++) {
+            const number = sudoku.board[row * 9 + col];
+            if(number >= 1 && number <= 9)
+                sum += number;
+        }
+        if(sum != 45) {
+            return false;
+        }
+    }
+    //  Each big cell must contain [1,2,3,4,5,6,7,8,9]
+    for(let big_cell_index = 0; big_cell_index < 9; big_cell_index++, sum = 0) {
+        const row = big_cell_index - big_cell_index % 3;
+        const col = (big_cell_index % 3) * 3;
+        sum += sudoku.board[(row + 0) * 9 + (col + 0)];
+        sum += sudoku.board[(row + 0) * 9 + (col + 1)];
+        sum += sudoku.board[(row + 0) * 9 + (col + 2)];
+        sum += sudoku.board[(row + 1) * 9 + (col + 0)];
+        sum += sudoku.board[(row + 1) * 9 + (col + 1)];
+        sum += sudoku.board[(row + 1) * 9 + (col + 2)];
+        sum += sudoku.board[(row + 2) * 9 + (col + 0)];
+        sum += sudoku.board[(row + 2) * 9 + (col + 1)];
+        sum += sudoku.board[(row + 2) * 9 + (col + 2)];
+        if(sum != 45) {
+            return false;
+        }
+    }
+    return true;
 }

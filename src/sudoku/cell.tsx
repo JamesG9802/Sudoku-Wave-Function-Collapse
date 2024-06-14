@@ -67,9 +67,9 @@ function get_rgb(color: string): {
     else if(color.charAt(0) == "#") {
         if(color.length == 4) {
             return {
-                red: Number("0x" + color.substring(1, 2)),
-                green: Number("0x" + color.substring(2, 3)),
-                blue: Number("0x" + color.substring(3, 4)),
+                red: Number("0x" + color.substring(1, 2)) / 15 * 255,
+                green: Number("0x" + color.substring(2, 3)) / 15 * 255,
+                blue: Number("0x" + color.substring(3, 4)) / 15 * 255,
             }
         }
         else
@@ -162,7 +162,7 @@ export default memo(function ({cell_value, onClick,
                     //  If a valid cell exists
                     state == CellState.Valid && parsed_possibilities != undefined && smallest_possibility != undefined ? 
                         //  give it a color on a scale based on how many possibilities it has
-                        interpolate_color(theme.palette.secondary.light, theme.palette.text.primary, 
+                        interpolate_color(theme.palette.secondary.light, theme.palette.getContrastText(theme.palette.secondary.light), 
                             parsed_possibilities.length - smallest_possibility == 0 ? 0 :
                             parsed_possibilities.length - smallest_possibility == 1 ? .25 : 
                             parsed_possibilities.length - smallest_possibility == 2 ? .3 : 

@@ -63,7 +63,6 @@ export const BigCell = memo(function({sudoku, big_cell_index,
       }
     }
     else {
-      console.log("render check")
       for(let i = 0; i < sudoku.board.length; i++) {
         previous_board.current[i] = sudoku.board[i];
       }

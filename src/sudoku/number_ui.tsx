@@ -25,6 +25,7 @@ export default function NumberUI({disabled, number, onClick}: NumberUIProps) {
           ":hover" : {
             borderWidth: "2px",
           },
+          padding: "0rem",
           borderWidth: "2px",
           fontSize: "2.25rem",
           fontWeight: "bold",
